@@ -143,6 +143,9 @@ export class McpEndpointController {
     const invocationContext = {
       userId: user?.sub as string | undefined,
       userEmail: (user?.email || user?.user_data?.email) as string | undefined,
+      organizationId:
+        (user?.organizationId as string | undefined) ||
+        mcpServerConfig.organizationId,
       authMethod: (user?.authMethod || 'none') as string,
       apiKeyName: user?.apiKeyName as string | undefined,
       mcpServerId: mcpServerConfig.id,

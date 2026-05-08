@@ -44,6 +44,7 @@ export class DynamicMcpTools {
     context?: {
       userId?: string;
       userEmail?: string;
+      organizationId?: string;
       authMethod?: string;
       apiKeyName?: string;
       mcpServerId?: string;
@@ -68,7 +69,14 @@ export class DynamicMcpTools {
       };
     }
 
-    const tool = this.toolRegistry.getTool(toolName, context?.connectorIds);
+    // Resolve the tool with the most specific scope available so cross-org
+    // collisions on the global /mcp endpoint don't leak. connectorIds is set
+    // when invoked through /mcp/:serverId; organizationId is set whenever
+    // we have a JWT.
+    let tool = this.toolRegistry.getTool(toolName, context?.connectorIds);
+    if (!tool && context?.organizationId) {
+      tool = this.toolRegistry.getToolForOrg(toolName, context.organizationId);
+    }
     if (!tool) {
       return {
         content: [

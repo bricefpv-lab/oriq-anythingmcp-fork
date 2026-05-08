@@ -12,6 +12,10 @@ import { Injectable, Logger } from '@nestjs/common';
 export interface RegisteredTool {
   id: string;
   connectorId: string;
+  // organizationId of the connector that owns this tool. Used to scope
+  // by-name lookups so cross-tenant collisions on the global /mcp endpoint
+  // can't leak tools across organizations.
+  organizationId: string;
   name: string;
   description: string;
   parameters: Record<string, unknown>;
@@ -82,6 +86,22 @@ export class ToolRegistry {
     if (!candidates || candidates.length === 0) return undefined;
     if (!connectorIds) return candidates[0];
     return candidates.find((t) => connectorIds.includes(t.connectorId));
+  }
+
+  /**
+   * Get a tool definition by name, scoped to a single organization. Used by
+   * the global /mcp endpoint when an authenticated user invokes a tool by
+   * name — without this, two organizations that happen to define a tool
+   * called `weclapp_list_articles` would resolve to whichever was registered
+   * first (cross-tenant leak).
+   */
+  getToolForOrg(
+    name: string,
+    organizationId: string,
+  ): RegisteredTool | undefined {
+    const candidates = this.toolsByName.get(name);
+    if (!candidates || candidates.length === 0) return undefined;
+    return candidates.find((t) => t.organizationId === organizationId);
   }
 
   /**

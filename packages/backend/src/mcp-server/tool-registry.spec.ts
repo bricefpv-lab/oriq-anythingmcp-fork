@@ -3,6 +3,7 @@ import { ToolRegistry, RegisteredTool } from './tool-registry';
 const makeTool = (overrides: Partial<RegisteredTool> = {}): RegisteredTool => ({
   id: 'tool-1',
   connectorId: 'conn-1',
+  organizationId: 'org-1',
   name: 'test_tool',
   description: 'A test tool',
   parameters: {},
@@ -48,6 +49,33 @@ describe('ToolRegistry', () => {
   describe('getTool', () => {
     it('should return undefined for unregistered tool name', () => {
       expect(registry.getTool('nonexistent')).toBeUndefined();
+    });
+  });
+
+  describe('getToolForOrg', () => {
+    it('returns the tool only for its organization', () => {
+      const a = makeTool({
+        id: 'a',
+        name: 'shared',
+        connectorId: 'c-a',
+        organizationId: 'org-A',
+      });
+      const b = makeTool({
+        id: 'b',
+        name: 'shared',
+        connectorId: 'c-b',
+        organizationId: 'org-B',
+      });
+      registry.registerTool(a);
+      registry.registerTool(b);
+
+      expect(registry.getToolForOrg('shared', 'org-A')?.id).toBe('a');
+      expect(registry.getToolForOrg('shared', 'org-B')?.id).toBe('b');
+      expect(registry.getToolForOrg('shared', 'org-C')).toBeUndefined();
+    });
+
+    it('returns undefined when name is not registered', () => {
+      expect(registry.getToolForOrg('nope', 'org-A')).toBeUndefined();
     });
   });
 

@@ -226,9 +226,14 @@ export class EmailService {
     const transport = await this.createTransporter();
 
     if (!transport) {
-      // Log verification code to console so developers can verify manually
-      this.logger.warn(
-        `SMTP not configured — verification code for ${to}: ${code}`,
+      // No local SMTP configured — we will fall back to the external API
+      // (anythingmcp.com mailer). Don't log the verification code: even
+      // with redaction filters, a 6-digit code is short enough to be a
+      // genuine credential and ends up readable by anyone with log access
+      // (cloud provider, sysadmin, leaked dump). The fallback path below
+      // delivers the code via Mailgun.
+      this.logger.debug(
+        `Local SMTP not configured for ${to}; delegating verification email to external API.`,
       );
     }
 

@@ -57,6 +57,7 @@ export class McpServerService implements OnModuleInit {
         const toolDef = {
           id: tool.id,
           connectorId: connector.id,
+          organizationId: connector.organizationId,
           name: tool.name,
           description: tool.description,
           parameters: tool.parameters as Record<string, unknown>,
@@ -113,6 +114,7 @@ export class McpServerService implements OnModuleInit {
         const toolDef = {
           id: tool.id,
           connectorId: connector.id,
+          organizationId: connector.organizationId,
           name: tool.name,
           description: tool.description,
           parameters: tool.parameters as Record<string, unknown>,
@@ -173,8 +175,12 @@ export class McpServerService implements OnModuleInit {
         if (user?.sub) {
           const allowedToolIds = await this.rolesService.getAllowedToolIds(user.sub);
           if (allowedToolIds !== null) {
-            // User has restricted access — check if this tool is allowed
-            const tool = this.toolRegistry.getTool(name);
+            // User has restricted access — check if this tool is allowed.
+            // Resolve by org first so we don't read the wrong org's tool
+            // when two orgs registered the same tool name.
+            const tool = user.organizationId
+              ? this.toolRegistry.getToolForOrg(name, user.organizationId)
+              : this.toolRegistry.getTool(name);
             if (tool && !allowedToolIds.includes(tool.id)) {
               return {
                 content: [{ type: 'text' as const, text: JSON.stringify({ error: `Access denied: you do not have permission to use '${name}'.` }) }],
@@ -196,6 +202,29 @@ export class McpServerService implements OnModuleInit {
                 };
               }
             }
+          } else if (user.organizationId) {
+            // Authenticated user without MCP-server scoping: the global
+            // /mcp endpoint must still refuse to invoke a same-named tool
+            // from a different organization. Reject if no tool exists for
+            // this org (an unscoped lookup would otherwise silently fall
+            // back to whichever org registered the name first).
+            const orgTool = this.toolRegistry.getToolForOrg(
+              name,
+              user.organizationId,
+            );
+            if (!orgTool) {
+              return {
+                content: [
+                  {
+                    type: 'text' as const,
+                    text: JSON.stringify({
+                      error: `Tool '${name}' is not available for your organization.`,
+                    }),
+                  },
+                ],
+                isError: true,
+              };
+            }
           }
         }
 
@@ -203,6 +232,7 @@ export class McpServerService implements OnModuleInit {
         const invocationContext = {
           userId: user?.sub,
           userEmail: user?.email || user?.user_data?.email,
+          organizationId: user?.organizationId,
           authMethod: user?.authMethod || 'none',
           apiKeyName: user?.apiKeyName,
           mcpServerId: user?.mcpServerId,
