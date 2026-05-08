@@ -25,6 +25,7 @@ import { RedisModule } from './common/redis.module';
 import { McpAuthMiddleware } from './auth/mcp-auth.middleware';
 import { McpRateLimitMiddleware } from './auth/mcp-rate-limit.middleware';
 import { ClientCredentialsMiddleware } from './auth/client-credentials.middleware';
+import { OAuthRegisterGuardMiddleware } from './auth/oauth-register-guard.middleware';
 import { LocalOAuthProvider } from './auth/local-oauth.provider';
 import { PrismaOAuthStore } from './auth/prisma-oauth.store';
 import { PrismaService } from './common/prisma.service';
@@ -158,6 +159,12 @@ export class AppModule implements NestModule {
         .apply(ClientCredentialsMiddleware)
         .forRoutes('token');
     }
+
+    // Reject malformed POST /register bodies before they reach the
+    // upstream @rekog/mcp-nest controller (which would otherwise crash
+    // with a 500 on undefined.redirect_uris). Always on — the guard is
+    // a pure body-shape validator and a no-op for valid JSON requests.
+    consumer.apply(OAuthRegisterGuardMiddleware).forRoutes('register');
 
     // Apply legacy auth middleware for MCP endpoint
     if (mode === 'legacy' || mode === 'both') {

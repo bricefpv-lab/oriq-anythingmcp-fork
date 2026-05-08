@@ -1,7 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
- 
+
 const SwaggerParser = require('swagger-parser');
 import axios from 'axios';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const yaml = require('js-yaml') as { load: (s: string) => unknown };
 import { assertSafeOutboundUrl } from '../../common/ssrf.util';
 
 export interface ParsedTool {
@@ -28,10 +30,60 @@ export class OpenApiParser {
   async parse(spec: string | Record<string, unknown>): Promise<ParsedTool[]> {
     this.logger.debug('Parsing OpenAPI specification...');
 
-    const rawSpec = typeof spec === 'string' ? JSON.parse(spec) : spec;
-    const api = (await SwaggerParser.validate(rawSpec as any)) as any;
+    const rawSpec = typeof spec === 'string' ? this.decodeSpecString(spec) : spec;
+
+    // OpenAPI 3.1 isn't supported by swagger-parser's validator (the upstream
+    // schema is OAS 3.0 only). Skip validation in that case — the dereference
+    // step still resolves $ref so we can extract tools, just without schema
+    // validation. This is intentional: rejecting 3.1 outright (the previous
+    // behaviour) blocks every modern spec from MS, AWS, etc.
+    const declaredVersion = (rawSpec as { openapi?: string }).openapi || '';
+    const isOpenApi31 = declaredVersion.startsWith('3.1');
+
+    let api: unknown;
+    try {
+      api = isOpenApi31
+        ? await SwaggerParser.dereference(rawSpec as any)
+        : await SwaggerParser.validate(rawSpec as any);
+    } catch (err: any) {
+      // swagger-parser lumps "version unsupported" with all other validation
+      // errors. Translate to a clearer message; keep the original details in
+      // the cause so support can still see the full reason.
+      if (err?.message?.includes('Unsupported OpenAPI version')) {
+        throw new Error(
+          'This OpenAPI document declares a version we don\'t fully support. ' +
+            'Try with an OpenAPI 3.0 spec, or contact support if the problem persists.',
+        );
+      }
+      throw err;
+    }
 
     return this.extractTools(api);
+  }
+
+  /**
+   * Accept JSON or YAML. Many real-world specs (Stripe, Datadog, AWS, GitHub)
+   * are distributed as YAML; the previous JSON-only path produced
+   * "Unexpected token 'o'" errors and ate four user attempts in production.
+   */
+  private decodeSpecString(input: string): unknown {
+    const trimmed = input.trimStart();
+    if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+      return JSON.parse(input);
+    }
+    try {
+      return yaml.load(input);
+    } catch (yamlErr) {
+      // Last-resort: try JSON anyway so the original error surfaces if the
+      // input is genuinely malformed.
+      try {
+        return JSON.parse(input);
+      } catch {
+        throw new Error(
+          `Spec is neither valid JSON nor valid YAML. ${(yamlErr as Error).message || ''}`.trim(),
+        );
+      }
+    }
   }
 
   async parseFromUrl(url: string): Promise<ParsedTool[]> {
