@@ -27,6 +27,7 @@ import * as xentral from './de/xentral.json';
 import * as shopware6 from './de/shopware-6.json';
 import * as hereGeocoding from './de/here-geocoding.json';
 import * as personio from './de/personio.json';
+import * as hrworks from './de/hrworks.json';
 
 export interface AdapterMeta {
   slug: string;
@@ -93,6 +94,7 @@ const ALL_ADAPTERS: AdapterDefinition[] = [
   shopware6 as unknown as AdapterDefinition,
   hereGeocoding as unknown as AdapterDefinition,
   personio as unknown as AdapterDefinition,
+  hrworks as unknown as AdapterDefinition,
 ];
 
 export function listAdapters(): AdapterMeta[] {
