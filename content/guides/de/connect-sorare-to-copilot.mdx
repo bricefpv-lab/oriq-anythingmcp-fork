@@ -1,0 +1,100 @@
+---
+title: "Sorare mit GitHub Copilot verbinden — NFT-Fantasy-Football via MCP"
+description: "Sorares GraphQL-API mit AnythingMCP an GitHub Copilot Chat anbinden. Karten, Spieler, Aufstellungen, Auktionen, Wallet und Transfermarkt direkt in natürlicher Sprache abfragen. Bcrypt-Login und 30-Tage-JWT-Caching sind automatisiert."
+category: "connectors"
+keyword: "Sorare Copilot, Sorare GitHub Copilot, Sorare Copilot MCP, Sorare GraphQL Copilot, Fantasy Football Copilot, NFT Fantasy Copilot"
+publishedAt: "2026-05-18"
+adapterSlug: "sorare"
+lang: "de"
+---
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/HelpCode-ai/anythingmcp/main/content/guides/assets/sorare.svg" alt="Sorare" width="220" />
+</p>
+
+## Sorare mit GitHub Copilot verbinden
+
+GitHub Copilot Chat unterstützt jetzt das **Model Context Protocol (MCP)** über die `mcp`-Konfiguration in VS Code und JetBrains. Mit AnythingMCP als Brücke zur Sorare-GraphQL-API kannst du Karten, Spieler, Aufstellungen, den Sekundärmarkt und dein Wallet direkt aus Copilot heraus abfragen — ohne den Editor zu verlassen.
+
+### Was du tun kannst
+
+- "Sorare: Wie ist mein Wallet-Stand und wie laufe ich diese Saison in So5?"
+- "Sorare: Finde die günstigste Limited-Karte für Bukayo Saka."
+- "Sorare: Liste meine Rare-Karten nach Spieler, sortiert nach jüngstem So5-Score."
+- "Sorare: Zeig die jüngsten Verkaufspreise für Vinícius-Júnior-Rare-Karten der letzten 30 Tage."
+
+### Voraussetzungen
+
+- Aktives Sorare-Konto auf https://sorare.com — wir empfehlen ein **dediziertes Read-only-Konto mit deaktivierter 2FA** für Headless / Agent-Nutzung.
+- AnythingMCP lokal oder auf cloud.anythingmcp.com (3-Minuten-Setup).
+- GitHub Copilot Chat mit MCP-Support (VS Code Insiders ≥ 1.95 oder JetBrains-Plugin mit MCP).
+
+### Schritt 1 — Sorare-Adapter installieren
+
+```bash
+git clone https://github.com/HelpCode-ai/anythingmcp.git
+cd anythingmcp && docker compose up -d
+```
+
+Öffne `http://localhost:3000/connectors/store`, klicke **Sorare** und trage ein:
+
+| Feld | Wert |
+|---|---|
+| `SORARE_EMAIL` | Kontomail |
+| `SORARE_PASSWORD` | Klartext-Passwort (vor Login lokal bcrypt-gehasht) |
+
+Erstelle einen MCP-API-Key unter **Profile → MCP API Keys**.
+
+### Schritt 2 — Sorare in Copilots MCP-Server einfügen
+
+In VS Code: Einstellungen → suche **Copilot: MCP servers** → ergänze:
+
+```json
+{
+  "mcp.servers": {
+    "sorare": {
+      "url": "http://localhost:4000/mcp",
+      "transport": "http",
+      "headers": {
+        "Authorization": "Bearer DEIN_MCP_API_KEY"
+      }
+    }
+  }
+}
+```
+
+Für Cloud: ersetze die URL durch `https://cloud.anythingmcp.com/mcp`.
+
+Copilot Chat neu starten. Die 18 Sorare-Tools tauchen automatisch auf — Copilot wählt das passende Tool je nach Prompt.
+
+### Verfügbare Tools (18)
+
+| Gruppe | Tools |
+|---|---|
+| **Identität / Wallet** | `sorare_current_user`, `sorare_wallet_balance`, `sorare_my_trophies_summary`, `sorare_user_by_slug` |
+| **Karten** | `sorare_list_my_cards`, `sorare_get_card_by_slug`, `sorare_list_player_cards` |
+| **Spieler** | `sorare_search_player`, `sorare_player_recent_scores`, `sorare_player_floor_price` |
+| **Markt** | `sorare_live_sale_offers`, `sorare_token_prices`, `sorare_get_auction`, `sorare_get_lineup` |
+| **Generic GraphQL** | `sorare_graphql_schema_url`, `sorare_graphql_schema`, `sorare_graphql_query`, `sorare_graphql_mutation`, `sorare_graphql_subscription` |
+
+### Token-Rotation
+
+Sorare-JWTs leben ~30 Tage. AnythingMCP frischt sie 24 h vor Ablauf auf und stellt sie bei einem 401 neu aus — Copilot sieht nie ein abgelaufenes Token.
+
+### FAQ
+
+**Muss Copilot auf derselben Maschine wie AnythingMCP laufen?**
+Nein. Die MCP-URL kann jeder erreichbare Host sein; cloud.anythingmcp.com funktioniert von überall.
+
+**Kann ich Copilot auf Read-only-Sorare-Tools beschränken?**
+Ja — in AnythingMCP eine Rolle anlegen, die nur die `sorare_get_*`-, `sorare_list_*`-, `sorare_current_user`-, `sorare_wallet_balance`-, `sorare_token_prices`- und `sorare_player_*`-Tools freigibt, und deinen MCP-API-Key daran binden.
+
+**Funktioniert die Copilot-MCP-Integration auch in JetBrains?**
+Ja — gleiches JSON unter dem JetBrains-Copilot-Settings-Panel.
+
+### Nächste Schritte
+
+- [Sorare an MCP anbinden — generischer Leitfaden](./sorare-to-mcp)
+- [Sorare mit Claude verbinden](./connect-sorare-to-claude)
+- [Sorare mit ChatGPT verbinden](./connect-sorare-to-chatgpt)
+- [Sorare mit OpenClaw verbinden](./connect-sorare-to-openclaw)

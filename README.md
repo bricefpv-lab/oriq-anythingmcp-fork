@@ -161,9 +161,13 @@ AnythingMCP ships with **37+ ready-to-use adapters** — DACH-rooted but reachin
 
 ### 🎮 Gaming & Web3 — featured
 
+<p align="center">
+  <img src="docs/assets/icons/sorare.svg" alt="Sorare" width="220" />
+</p>
+
 | Connector | Description | Guides |
 |---|---|---|
-| **Sorare Fantasy Football** ⚽🌍 | NFT fantasy football, baseball & basketball — 18 tools over cards, players, So5 lineups, wallet, scoring history and the live transfer market. Bcrypt-salted login + 30-day JWT caching handled for you. | [Sorare → MCP](docs/guides/sorare-to-mcp.md) · [Claude](docs/guides/connect-sorare-to-claude.md) · [ChatGPT](docs/guides/connect-sorare-to-chatgpt.md) · [OpenClaw](docs/guides/connect-sorare-to-openclaw.md) · [Cloud](docs/guides/connect-sorare-to-cloud.md) |
+| **Sorare Fantasy Football** ⚽🌍 | NFT fantasy football, baseball & basketball — **18 tools** over cards, players, So5 lineups, wallet, scoring history and the live transfer market. Bcrypt-salted login + 30-day JWT caching handled for you. | [Sorare → MCP](docs/guides/sorare-to-mcp.md) · [Claude](docs/guides/connect-sorare-to-claude.md) · [ChatGPT](docs/guides/connect-sorare-to-chatgpt.md) · [Copilot](docs/guides/connect-sorare-to-copilot.md) · [OpenClaw](docs/guides/connect-sorare-to-openclaw.md) · [Cloud](docs/guides/connect-sorare-to-cloud.md) |
 
 Sorare is also the reference implementation of AnythingMCP's new **`LOGIN_TOKEN`** AuthType — a declarative spec for any API that requires a custom bcrypt-style sign-in handshake before issuing a long-lived bearer. Reuse the pattern for any other crypto / fintech / gaming API with non-OAuth auth: see [`docs/connectors/login-token-auth.md`](docs/connectors/login-token-auth.md).
 
@@ -312,7 +316,7 @@ AnythingMCP works with any MCP-compatible client. Pick yours:
 
 ### Featured adapter walkthroughs
 
-- 🎮 **Sorare Fantasy Football** — [Sorare → MCP](docs/guides/sorare-to-mcp.md) · [Connect Sorare to Claude](docs/guides/connect-sorare-to-claude.md) · [Connect Sorare to ChatGPT](docs/guides/connect-sorare-to-chatgpt.md) · [Connect Sorare to OpenClaw](docs/guides/connect-sorare-to-openclaw.md) · [Connect Sorare to AnythingMCP Cloud](docs/guides/connect-sorare-to-cloud.md)
+- 🎮 **Sorare Fantasy Football** — [Sorare → MCP](docs/guides/sorare-to-mcp.md) · [Connect Sorare to Claude](docs/guides/connect-sorare-to-claude.md) · [Connect Sorare to ChatGPT](docs/guides/connect-sorare-to-chatgpt.md) · [Connect Sorare to GitHub Copilot](docs/guides/connect-sorare-to-copilot.md) · [Connect Sorare to OpenClaw](docs/guides/connect-sorare-to-openclaw.md) · [Connect Sorare to AnythingMCP Cloud](docs/guides/connect-sorare-to-cloud.md)
 
 ---
 

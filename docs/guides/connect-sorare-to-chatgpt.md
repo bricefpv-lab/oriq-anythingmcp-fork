@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="../assets/icons/sorare.svg" alt="Sorare" width="220" />
+</p>
+
 # Connect Sorare to ChatGPT — fantasy football tools inside GPT
 
 **Keywords:** connect sorare to chatgpt · sorare chatgpt · sorare gpt · sorare openai · sorare chatgpt connector · sorare chatgpt mcp · fantasy football chatgpt · sorare ai chatgpt
@@ -8,6 +12,7 @@ Other guides in this directory:
 
 - [Sorare to MCP — main hub](./sorare-to-mcp.md)
 - [Connect Sorare to Claude](./connect-sorare-to-claude.md)
+- [Connect Sorare to GitHub Copilot](./connect-sorare-to-copilot.md)
 - [Connect Sorare to OpenClaw](./connect-sorare-to-openclaw.md)
 - [Connect Sorare to AnythingMCP Cloud](./connect-sorare-to-cloud.md)
 

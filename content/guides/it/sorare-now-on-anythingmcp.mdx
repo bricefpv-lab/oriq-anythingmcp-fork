@@ -1,0 +1,68 @@
+---
+title: "Sorare è ora su AnythingMCP — Collega Sorare a Claude, ChatGPT, Copilot e OpenClaw"
+description: "Annunciamo l'API GraphQL di Sorare come connector MCP one-click. Bcrypt-login + caching JWT a 30 giorni gestiti per te. 18 tool pronti — carte, giocatori, line-up, aste, wallet, score — funzionano out-of-the-box in Claude, ChatGPT, GitHub Copilot, OpenClaw, Cursor e qualsiasi AI client che parla MCP."
+category: "announcements"
+keyword: "Sorare MCP, Sorare AI, Sorare Claude, Sorare ChatGPT, Sorare Copilot, Sorare OpenClaw, fantasy football NFT MCP, Sorare GraphQL agente AI"
+publishedAt: "2026-05-18"
+adapterSlug: "sorare"
+lang: "it"
+featured: true
+---
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/HelpCode-ai/anythingmcp/main/content/guides/assets/sorare.svg" alt="Sorare" width="280" />
+</p>
+
+## Sorare è ora su AnythingMCP
+
+Da oggi puoi collegare [Sorare](https://sorare.com/) — la più grande piattaforma di fantasy football, baseball e basketball NFT — a **qualsiasi client AI che parla MCP** con un'unica installazione. Niente SDK da assemblare, niente rotazione token da gestire a mano, niente composizione GraphQL imparata a tentoni.
+
+Il nuovo **connector Sorare** di AnythingMCP impacchetta tutta l'[API GraphQL](https://github.com/sorare/api) e arriva con **18 tool pronti all'uso** out-of-the-box:
+
+- **Identità & wallet** — `sorare_current_user`, `sorare_wallet_balance`, `sorare_my_trophies_summary`, `sorare_user_by_slug`
+- **Carte & inventario** — `sorare_list_my_cards`, `sorare_get_card_by_slug`, `sorare_list_player_cards`
+- **Giocatori & forma** — `sorare_search_player`, `sorare_player_recent_scores`, `sorare_player_floor_price`
+- **Mercato & aste** — `sorare_live_sale_offers`, `sorare_token_prices`, `sorare_get_auction`, `sorare_get_lineup`
+- **Escape hatch GraphQL generico (auto-iniettato per ogni connector GraphQL)** — `sorare_graphql_schema_url`, `sorare_graphql_schema`, `sorare_graphql_query`, `sorare_graphql_mutation`, `sorare_graphql_subscription`
+
+### Scegli il tuo client AI
+
+| Client | Guida passo-passo |
+|---|---|
+| 🤖 **Claude (Desktop & Code)** | [Collegare Sorare a Claude →](./connect-sorare-to-claude) |
+| 💬 **ChatGPT (Plus / Team / Enterprise)** | [Collegare Sorare a ChatGPT →](./connect-sorare-to-chatgpt) |
+| 👨‍💻 **GitHub Copilot (VS Code & JetBrains)** | [Collegare Sorare a Copilot →](./connect-sorare-to-copilot) |
+| 🦾 **OpenClaw (AI locale self-hosted)** | [Collegare Sorare a OpenClaw →](./connect-sorare-to-openclaw) |
+| ☁️ **AnythingMCP Cloud (managed)** | [Collegare Sorare a AnythingMCP Cloud →](./connect-sorare-to-cloud) |
+| ❓ **Qualsiasi altro client MCP** | [Sorare su MCP — guida generica →](./sorare-to-mcp) |
+
+### Perché è una notizia importante
+
+L'API di Sorare ha due peculiarità che la rendono complicata da guidare da un client GraphQL generico:
+
+1. **Auth custom.** Niente API key, niente OAuth2. Il sign-in è un handshake bcrypt: prendi un salt per account, hashi la password localmente, mandi l'hash via mutation `signIn`, poi echi un header `JWT-AUD` a ogni call. Il nuovo AuthType **`LOGIN_TOKEN`** di AnythingMCP descrive tutto il flusso dichiarativamente in JSON — la tua password non lascia mai il tuo server, solo l'hash bcrypt, e il caching del JWT + l'auto-refresh sono gestiti.
+2. **Introspection disabilitata in produzione.** Gli agenti non possono scoprire lo schema via `__schema` / `__type`. Il tool auto-iniettato `sorare_graphql_schema` di AnythingMCP proxa l'SDL attraverso il server MCP e ritorna slice di dimensioni gestibili (`type:"X"`, `search:"foo"`, `full:true`) — anche i schema più grandi entrano nella context window dell'agente.
+
+Risultato: ogni tool dedicato funziona subito, e quando ti serve qualcosa di custom il tuo agente può comporre qualsiasi query GraphQL — senza dover sapere come funziona l'auth di Sorare.
+
+### Prova adesso
+
+- **Hosted (zero install):** login su [`cloud.anythingmcp.com`](https://cloud.anythingmcp.com), clicca **Connectors → Sorare → Install**, inserisci email + password Sorare, genera una MCP API key, punta Claude / ChatGPT / Copilot a `https://cloud.anythingmcp.com/mcp`.
+- **Self-hosted (data residency totale):** `git clone https://github.com/HelpCode-ai/anythingmcp.git && cd anythingmcp && docker compose up -d` — stessa UI su `http://localhost:3000`.
+
+### Note
+
+- Per uso headless / agent consigliamo un **account Sorare dedicato in sola lettura con 2FA disattivata** — `signIn` rifiuta richieste senza un OTP aggiornato quando la 2FA è attiva.
+- Sorare esprime gli importi fiat in **centesimi**, non in unità di valuta. Dividi `eurCents` / `usdCents` / `gbpCents` per 100 — Claude / ChatGPT / Copilot lo leggono dalle adapter instructions e lo gestiscono in automatico.
+- L'adapter Sorare è ora [featured](https://cloud.anythingmcp.com/connectors) sul catalogo AnythingMCP (`priority: 100`).
+
+### Vedi anche
+
+- [Sorare su MCP — riferimento principale](./sorare-to-mcp)
+- [Collegare Sorare a Claude](./connect-sorare-to-claude)
+- [Collegare Sorare a ChatGPT](./connect-sorare-to-chatgpt)
+- [Collegare Sorare a Copilot](./connect-sorare-to-copilot)
+- [Collegare Sorare a OpenClaw](./connect-sorare-to-openclaw)
+- [Collegare Sorare a AnythingMCP Cloud](./connect-sorare-to-cloud)
+- [AnythingMCP su GitHub](https://github.com/HelpCode-ai/anythingmcp)
+- [Repo ufficiale API Sorare](https://github.com/sorare/api)

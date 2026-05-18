@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="../assets/icons/sorare.svg" alt="Sorare" width="220" />
+</p>
+
 # Sorare to MCP — Connect Sorare GraphQL API to any AI agent
 
 **Keywords:** sorare mcp · sorare to mcp · sorare graphql mcp · sorare api mcp · sorare model context protocol · sorare ai · sorare ai agent · connect sorare api · sorare bcrypt auth · sorare jwt 30 days · fantasy football mcp · nft fantasy mcp
@@ -8,6 +12,7 @@ Other companion guides in this directory:
 
 - [Connect Sorare to Claude](./connect-sorare-to-claude.md)
 - [Connect Sorare to ChatGPT](./connect-sorare-to-chatgpt.md)
+- [Connect Sorare to GitHub Copilot](./connect-sorare-to-copilot.md)
 - [Connect Sorare to OpenClaw](./connect-sorare-to-openclaw.md)
 - [Connect Sorare to AnythingMCP Cloud](./connect-sorare-to-cloud.md)
 

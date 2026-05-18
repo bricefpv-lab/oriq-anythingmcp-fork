@@ -51,10 +51,13 @@ if [ ! -d "$SOURCE_GUIDES" ]; then
   exit 1
 fi
 
-# Sync guides for each locale
+# Sync guides for each locale (skip the shared `assets/` directory — it's
+# not a locale; it's copied separately below).
 SYNCED=0
 for locale_dir in "$SOURCE_GUIDES"/*/; do
   locale=$(basename "$locale_dir")
+  [ "$locale" = "assets" ] && continue
+
   target_dir="$WEBSITE_CONTENT/$locale/guides"
 
   if [ ! -d "$target_dir" ]; then
@@ -69,5 +72,21 @@ for locale_dir in "$SOURCE_GUIDES"/*/; do
     SYNCED=$((SYNCED + 1))
   done
 done
+
+# Sync the shared `assets/` directory (logos, banners). Guides reference
+# these via the GitHub raw URL by default so they render without depending
+# on the website filesystem, but copying them here lets the website serve
+# them locally if it wants (recommended for performance + privacy).
+if [ -d "$SOURCE_GUIDES/assets" ]; then
+  target_assets="$WEBSITE_CONTENT/guides-assets"
+  mkdir -p "$target_assets"
+  ASSETS_SYNCED=0
+  for f in "$SOURCE_GUIDES"/assets/*; do
+    [ -f "$f" ] || continue
+    cp "$f" "$target_assets/$(basename "$f")"
+    ASSETS_SYNCED=$((ASSETS_SYNCED + 1))
+  done
+  echo "Synced $ASSETS_SYNCED shared asset(s) to $target_assets."
+fi
 
 echo "Synced $SYNCED guide files from AnythingMCP to website."

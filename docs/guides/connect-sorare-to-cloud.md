@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="../assets/icons/sorare.svg" alt="Sorare" width="220" />
+</p>
+
 # Connect Sorare to AnythingMCP Cloud — managed MCP server for the Sorare GraphQL API
 
 **Keywords:** connect sorare to cloud · sorare cloud mcp · sorare anythingmcp cloud · sorare managed mcp · sorare hosted mcp · sorare api saas · sorare claude cloud · sorare chatgpt cloud · sorare opencloud
@@ -9,6 +13,7 @@ Other guides in this directory:
 - [Sorare to MCP — main hub](./sorare-to-mcp.md)
 - [Connect Sorare to Claude](./connect-sorare-to-claude.md)
 - [Connect Sorare to ChatGPT](./connect-sorare-to-chatgpt.md)
+- [Connect Sorare to GitHub Copilot](./connect-sorare-to-copilot.md)
 - [Connect Sorare to OpenClaw](./connect-sorare-to-openclaw.md)
 
 ---

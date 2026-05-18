@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="../assets/icons/sorare.svg" alt="Sorare" width="220" />
+</p>
+
 # Connect Sorare to Claude — NFT fantasy football inside Claude Desktop & Claude Code
 
 **Keywords:** connect sorare to claude · sorare claude desktop · sorare claude code · sorare claude mcp · sorare ai claude · sorare anthropic · fantasy football claude · sorare claude integration
@@ -8,6 +12,7 @@ Other guides in this directory:
 
 - [Sorare to MCP — the main hub](./sorare-to-mcp.md)
 - [Connect Sorare to ChatGPT](./connect-sorare-to-chatgpt.md)
+- [Connect Sorare to GitHub Copilot](./connect-sorare-to-copilot.md)
 - [Connect Sorare to OpenClaw](./connect-sorare-to-openclaw.md)
 - [Connect Sorare to AnythingMCP Cloud](./connect-sorare-to-cloud.md)
 

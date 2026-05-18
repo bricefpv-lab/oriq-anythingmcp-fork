@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="../assets/icons/sorare.svg" alt="Sorare" width="220" />
+</p>
+
 # Connect Sorare to OpenClaw — self-hosted AI assistant + NFT fantasy football
 
 **Keywords:** connect sorare to openclaw · sorare openclaw · sorare openclaw mcp · sorare self-hosted ai · openclaw mcp connector · openclaw graphql · sorare local ai · fantasy football openclaw
@@ -9,6 +13,7 @@ Other guides in this directory:
 - [Sorare to MCP — main hub](./sorare-to-mcp.md)
 - [Connect Sorare to Claude](./connect-sorare-to-claude.md)
 - [Connect Sorare to ChatGPT](./connect-sorare-to-chatgpt.md)
+- [Connect Sorare to GitHub Copilot](./connect-sorare-to-copilot.md)
 - [Connect Sorare to AnythingMCP Cloud](./connect-sorare-to-cloud.md)
 
 ---
