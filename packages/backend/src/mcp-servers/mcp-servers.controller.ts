@@ -16,9 +16,31 @@ import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery, ApiProperty, ApiPropert
 import { PaginationQueryDto } from '../common/pagination.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { IsString, IsOptional, IsBoolean, IsArray } from 'class-validator';
+import { Request } from 'express';
 import { McpServersService } from './mcp-servers.service';
 import { LicenseGuardService } from '../license/license-guard.service';
 import { PrismaService } from '../common/prisma.service';
+
+interface AuthRequest extends Request {
+  user: {
+    sub: string;
+    organizationId: string;
+    role: string;
+  };
+}
+
+interface McpServer {
+  id: string;
+  organizationId: string;
+  userId: string;
+  name: string;
+  slug?: string;
+  description?: string;
+  instructions?: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 class CreateMcpServerDto {
   @ApiProperty({ description: 'Human-readable name.', example: 'Sales Workspace' })
@@ -98,13 +120,13 @@ export class McpServersController {
     private readonly prisma: PrismaService,
   ) {}
 
-  private assertOrgMatch(server: any, req: any) {
+  private assertOrgMatch(server: McpServer, req: AuthRequest): void {
     if (server.organizationId !== req.user.organizationId) {
       throw new NotFoundException('MCP server not found');
     }
   }
 
-  private assertCanWrite(server: any, req: any) {
+  private assertCanWrite(server: McpServer, req: AuthRequest): void {
     this.assertOrgMatch(server, req);
     if (req.user.role === 'VIEWER') {
       throw new ForbiddenException('Viewers cannot modify MCP servers');
@@ -118,7 +140,7 @@ export class McpServersController {
   @ApiOperation({ summary: 'List MCP servers for current organization' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: '1..200' })
   @ApiQuery({ name: 'offset', required: false, type: Number })
-  async list(@Req() req: any, @Query() pagination: PaginationQueryDto) {
+  async list(@Req() req: AuthRequest, @Query() pagination: PaginationQueryDto) {
     return this.mcpServersService.findAllByOrg(req.user.organizationId, {
       limit: pagination.limit,
       offset: pagination.offset,
@@ -127,35 +149,35 @@ export class McpServersController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new MCP server' })
-  async create(@Req() req: any, @Body() dto: CreateMcpServerDto) {
+  async create(@Req() req: AuthRequest, @Body() dto: CreateMcpServerDto) {
     await this.licenseGuard.checkCanCreateMcpServer(req.user.sub, req.user.organizationId);
     return this.mcpServersService.create(req.user.sub, req.user.organizationId, dto);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get MCP server detail' })
-  async get(@Req() req: any, @Param('id') id: string) {
+  async get(@Req() req: AuthRequest, @Param('id') id: string) {
     const server = await this.mcpServersService.findById(id);
     if (!server) throw new NotFoundException('MCP server not found');
-    this.assertOrgMatch(server, req);
+    this.assertOrgMatch(server as McpServer, req);
     return server;
   }
 
   @Put(':id')
   @ApiOperation({ summary: 'Update MCP server' })
-  async update(@Req() req: any, @Param('id') id: string, @Body() dto: UpdateMcpServerDto) {
+  async update(@Req() req: AuthRequest, @Param('id') id: string, @Body() dto: UpdateMcpServerDto) {
     const server = await this.mcpServersService.findById(id);
     if (!server) throw new NotFoundException('MCP server not found');
-    this.assertCanWrite(server, req);
+    this.assertCanWrite(server as McpServer, req);
     return this.mcpServersService.update(id, dto);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete MCP server' })
-  async delete(@Req() req: any, @Param('id') id: string) {
+  async delete(@Req() req: AuthRequest, @Param('id') id: string) {
     const server = await this.mcpServersService.findById(id);
     if (!server) throw new NotFoundException('MCP server not found');
-    this.assertCanWrite(server, req);
+    this.assertCanWrite(server as McpServer, req);
     await this.mcpServersService.delete(id);
     return { message: 'MCP server deleted' };
   }
@@ -163,13 +185,13 @@ export class McpServersController {
   @Put(':id/connectors')
   @ApiOperation({ summary: 'Assign connectors to MCP server' })
   async assignConnectors(
-    @Req() req: any,
+    @Req() req: AuthRequest,
     @Param('id') id: string,
     @Body() dto: AssignConnectorsDto,
   ) {
     const server = await this.mcpServersService.findById(id);
     if (!server) throw new NotFoundException('MCP server not found');
-    this.assertCanWrite(server, req);
+    this.assertCanWrite(server as McpServer, req);
 
     // Validate that all connectors belong to the same organization
     if (dto.connectorIds.length > 0) {
