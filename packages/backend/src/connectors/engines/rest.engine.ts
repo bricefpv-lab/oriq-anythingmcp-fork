@@ -36,6 +36,10 @@ export class RestEngine {
       // (env present, tool opted in, license + rate-limit ok) and passes
       // the URL here, or omits it for a direct request.
       proxyUrl?: string;
+      // Per-request tenant token override (multi-tenant isolation).
+      // When present, OAUTH2 auth bypasses the connector's stored credential
+      // and injects this token directly as Bearer — no oauth2TokenService call.
+      oauthTokenOverride?: string;
     },
     endpointMapping: {
       method: string;
@@ -169,11 +173,14 @@ export class RestEngine {
       const response = await axios(axiosConfig);
       return response.data;
     } catch (error) {
-      // OAuth2 auto-refresh: retry once on 401
+      // OAuth2 auto-refresh: retry once on 401.
+      // Skip when oauthTokenOverride is set — the caller owns that token's
+      // lifecycle and we have no refresh token to work with.
       if (
         error instanceof AxiosError &&
         error.response?.status === 401 &&
         config.authType === 'OAUTH2' &&
+        !config.oauthTokenOverride &&
         config.authConfig?.refreshToken &&
         config.authConfig?.tokenUrl
       ) {
@@ -218,6 +225,7 @@ export class RestEngine {
       authType: string;
       authConfig?: Record<string, unknown>;
       connectorId?: string;
+      oauthTokenOverride?: string;
     },
   ): Promise<void> {
     if (!config.authConfig) return;
@@ -255,12 +263,20 @@ export class RestEngine {
         };
         break;
       case 'OAUTH2': {
-        const accessToken = await this.oauth2TokenService.getAccessToken(
-          config.authConfig,
-          config.connectorId,
-        );
+        // Multi-tenant isolation: if the caller passed a per-request token
+        // override (X-OAuth-Token header), use it directly and skip the
+        // connector's stored credential entirely.
+        const accessToken = config.oauthTokenOverride
+          ? config.oauthTokenOverride
+          : await this.oauth2TokenService.getAccessToken(
+              config.authConfig,
+              config.connectorId,
+            );
         // Some vendors use a non-standard prefix (e.g. Zoho: "Zoho-oauthtoken").
-        const prefix = String(config.authConfig?.tokenPrefix ?? 'Bearer');
+        // Override always uses Bearer (tenant tokens are standard OAuth2).
+        const prefix = config.oauthTokenOverride
+          ? 'Bearer'
+          : String(config.authConfig?.tokenPrefix ?? 'Bearer');
         axiosConfig.headers = {
           ...axiosConfig.headers,
           Authorization: `${prefix} ${accessToken}`,

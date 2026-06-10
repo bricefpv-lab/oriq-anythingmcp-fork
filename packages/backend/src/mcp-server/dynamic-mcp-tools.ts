@@ -118,6 +118,7 @@ export class DynamicMcpTools {
       mcpServerId?: string;
       mcpServerName?: string;
       connectorIds?: string[];
+      oauthTokenOverride?: string;
     },
   ): Promise<{ content: { type: 'text'; text: string }[]; isError?: boolean }> {
     // Check license before executing tool (cloud mode only)
@@ -207,6 +208,7 @@ export class DynamicMcpTools {
         specUrl: (tool.connectorConfig as any).specUrl,
         connectorId: tool.connectorId,
         ...(proxyUrl ? { proxyUrl } : {}),
+        ...(context?.oauthTokenOverride ? { oauthTokenOverride: context.oauthTokenOverride } : {}),
       };
 
       // Inject env vars as parameter defaults (env var values fill in params

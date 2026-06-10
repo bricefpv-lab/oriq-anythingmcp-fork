@@ -150,6 +150,12 @@ export class McpEndpointController {
 
     // Build invocation context for audit logging and tool scoping
     // OAuth JWTs store email inside user_data, app JWTs have it top-level
+    //
+    // X-OAuth-Token: per-request tenant token override. When present, the
+    // engine bypasses the stored connector credential and uses this token
+    // instead — enabling multi-tenant isolation without per-tenant connectors.
+    const oauthTokenOverride = req.headers['x-oauth-token'] as string | undefined;
+
     const invocationContext = {
       userId: user?.sub as string | undefined,
       userEmail: (user?.email || user?.user_data?.email) as string | undefined,
@@ -161,6 +167,7 @@ export class McpEndpointController {
       mcpServerId: mcpServerConfig.id,
       mcpServerName: mcpServerConfig.name,
       connectorIds,
+      ...(oauthTokenOverride ? { oauthTokenOverride } : {}),
     };
 
     for (const tool of serverTools) {
