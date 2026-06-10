@@ -205,6 +205,7 @@ export class DynamicMcpTools {
           : undefined,
         headers: interpolatedConfig.headers,
         specUrl: (tool.connectorConfig as any).specUrl,
+        connectorId: tool.connectorId,
         ...(proxyUrl ? { proxyUrl } : {}),
       };
 
