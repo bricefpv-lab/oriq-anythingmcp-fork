@@ -681,7 +681,7 @@ export class ConnectorsController {
         clientSecret = authConfig.clientSecret ? String(authConfig.clientSecret) : undefined;
         authorizationEndpoint = String(authConfig.authorizationUrl || '');
         tokenEndpoint = String(authConfig.tokenUrl || '');
-        scope = authConfig.scopes ? String(authConfig.scopes) : undefined;
+        scope = Array.isArray(authConfig.scopes) ? authConfig.scopes.join(' ') : (authConfig.scopes ? String(authConfig.scopes) : undefined);
       }
 
       if (!clientId) {
