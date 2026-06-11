@@ -118,8 +118,11 @@ export class RestEngine {
         assertNoPrototypePollution(parsed);
         axiosConfig.data = parsed;
       } else if (endpointMapping.bodyMapping) {
-        // Handle __raw body mapping (non-JSON body, e.g. XML/SOAP)
-        if ('__raw' in endpointMapping.bodyMapping) {
+        // passthrough: true → send all tool params directly as JSON body (no key remapping)
+        if (endpointMapping.bodyMapping['passthrough'] === true) {
+          axiosConfig.data = params;
+        } else if ('__raw' in endpointMapping.bodyMapping) {
+          // Handle __raw body mapping (non-JSON body, e.g. XML/SOAP)
           const mapped = this.mapParams(endpointMapping.bodyMapping, params);
           axiosConfig.data = mapped['__raw'];
         } else {
