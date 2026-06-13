@@ -1,0 +1,220 @@
+{
+  "slug": "microsoft-365",
+  "name": "Microsoft 365 (Outlook & OneDrive)",
+  "description": "Outlook email (envoi immédiat, brouillon), Outlook Calendar et OneDrive via Microsoft Graph API. OAuth 2.0 Bearer injecté par requête (X-OAuth-Token, multi-tenant Oriq).",
+  "instructions": "Ce connecteur utilise Microsoft Graph API v1.0. L'authentification OAuth est gérée par Oriq : le token est injecté via X-OAuth-Token à chaque requête — aucune variable d'environnement à configurer manuellement.\n\nEndpoints Graph utilisés :\n- POST /v1.0/me/sendMail       (envoi email)\n- POST /v1.0/me/messages       (brouillon)\n- POST /v1.0/me/events         (événement calendrier)\n- PUT  /v1.0/me/drive/root:/{file_path}:/content  (fichier OneDrive)\n\nLes destinataires (toRecipients, ccRecipients, bccRecipients) et les participants (attendees) doivent être passés au format Graph : [{ emailAddress: { address: 'user@example.com' } }]. La conversion depuis les adresses simples est faite par le moteur Oriq (outlookRequestTransform).",
+  "region": "intl",
+  "category": "productivity",
+  "icon": "microsoft",
+  "docsUrl": "https://learn.microsoft.com/en-us/graph/overview",
+  "requiredEnvVars": [],
+  "connector": {
+    "name": "Microsoft Graph (365)",
+    "type": "REST",
+    "baseUrl": "https://graph.microsoft.com",
+    "authType": "BEARER_TOKEN",
+    "authConfig": {
+      "token": "{{MICROSOFT_GRAPH_ACCESS_TOKEN}}"
+    }
+  },
+  "tools": [
+    {
+      "name": "microsoft_outlook_send_now",
+      "description": "Envoie immédiatement un email via Outlook. Demander confirmation explicite avant envoi.",
+      "parameters": {
+        "type": "object",
+        "required": ["subject", "to_recipients"],
+        "properties": {
+          "subject": {
+            "type": "string",
+            "description": "Objet du mail"
+          },
+          "to_recipients": {
+            "type": "array",
+            "items": { "type": "object" },
+            "description": "Destinataires au format Graph : [{ emailAddress: { address: 'user@example.com' } }]"
+          },
+          "body_content": {
+            "type": "string",
+            "description": "Corps du message"
+          },
+          "body_content_type": {
+            "type": "string",
+            "enum": ["Text", "HTML"],
+            "default": "Text"
+          },
+          "cc_recipients": {
+            "type": "array",
+            "items": { "type": "object" },
+            "description": "Destinataires en copie au format Graph"
+          },
+          "save_to_sent_items": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "endpointMapping": {
+        "path": "/v1.0/me/sendMail",
+        "method": "POST",
+        "bodyMapping": {
+          "message": {
+            "subject": "$subject",
+            "body": {
+              "contentType": "$body_content_type",
+              "content": "$body_content"
+            },
+            "toRecipients": "$to_recipients",
+            "ccRecipients": "$cc_recipients"
+          },
+          "saveToSentItems": true
+        }
+      }
+    },
+    {
+      "name": "microsoft_outlook_draft_create",
+      "description": "Crée un brouillon email dans Outlook. Confirmation avant envoi.",
+      "parameters": {
+        "type": "object",
+        "required": ["subject", "to_recipients"],
+        "properties": {
+          "subject": {
+            "type": "string",
+            "description": "Objet du mail"
+          },
+          "to_recipients": {
+            "type": "array",
+            "items": { "type": "object" },
+            "description": "Destinataires au format Graph : [{ emailAddress: { address: 'user@example.com' } }]"
+          },
+          "body_content": {
+            "type": "string",
+            "description": "Corps du message (texte ou HTML)"
+          },
+          "body_content_type": {
+            "type": "string",
+            "enum": ["Text", "HTML"],
+            "default": "Text"
+          },
+          "cc_recipients": {
+            "type": "array",
+            "items": { "type": "object" },
+            "description": "Destinataires en copie au format Graph"
+          },
+          "bcc_recipients": {
+            "type": "array",
+            "items": { "type": "object" },
+            "description": "Destinataires en copie cachée au format Graph"
+          }
+        }
+      },
+      "endpointMapping": {
+        "path": "/v1.0/me/messages",
+        "method": "POST",
+        "bodyMapping": {
+          "subject": "$subject",
+          "body": {
+            "contentType": "$body_content_type",
+            "content": "$body_content"
+          },
+          "toRecipients": "$to_recipients",
+          "ccRecipients": "$cc_recipients",
+          "bccRecipients": "$bcc_recipients"
+        }
+      }
+    },
+    {
+      "name": "microsoft_outlook_event_create",
+      "description": "Crée un événement dans le calendrier Outlook. Utiliser des dates ISO 8601 (ex: 2026-06-15T14:00:00).",
+      "parameters": {
+        "type": "object",
+        "required": ["subject", "start_datetime", "end_datetime"],
+        "properties": {
+          "subject": {
+            "type": "string",
+            "description": "Titre de l'événement"
+          },
+          "start_datetime": {
+            "type": "string",
+            "description": "Date/heure début ISO 8601 (ex: 2026-06-15T14:00:00)"
+          },
+          "end_datetime": {
+            "type": "string",
+            "description": "Date/heure fin ISO 8601"
+          },
+          "timezone": {
+            "type": "string",
+            "default": "Europe/Paris",
+            "description": "Fuseau horaire (ex: Europe/Paris)"
+          },
+          "attendees": {
+            "type": "array",
+            "items": { "type": "object" },
+            "description": "Participants au format Graph : [{ emailAddress: { address: 'user@example.com' }, type: 'required' }]"
+          },
+          "body_content": {
+            "type": "string",
+            "description": "Description de l'événement"
+          },
+          "location": {
+            "type": "string",
+            "description": "Lieu de l'événement"
+          }
+        }
+      },
+      "endpointMapping": {
+        "path": "/v1.0/me/events",
+        "method": "POST",
+        "bodyMapping": {
+          "subject": "$subject",
+          "start": {
+            "dateTime": "$start_datetime",
+            "timeZone": "$timezone"
+          },
+          "end": {
+            "dateTime": "$end_datetime",
+            "timeZone": "$timezone"
+          },
+          "body": {
+            "contentType": "Text",
+            "content": "$body_content"
+          },
+          "location": {
+            "displayName": "$location"
+          },
+          "attendees": "$attendees"
+        }
+      }
+    },
+    {
+      "name": "microsoft_onedrive_doc_create",
+      "description": "Crée ou écrase un fichier dans OneDrive (Word, texte, etc.) via upload de contenu.",
+      "parameters": {
+        "type": "object",
+        "required": ["file_path"],
+        "properties": {
+          "file_path": {
+            "type": "string",
+            "description": "Chemin OneDrive du fichier (ex: Documents/rapport.docx)"
+          },
+          "content": {
+            "type": "string",
+            "description": "Contenu texte du fichier"
+          },
+          "content_type": {
+            "type": "string",
+            "default": "text/plain",
+            "description": "MIME type (text/plain, application/vnd.openxmlformats-officedocument.wordprocessingml.document)"
+          }
+        }
+      },
+      "endpointMapping": {
+        "path": "/v1.0/me/drive/root:/{file_path}:/content",
+        "method": "PUT",
+        "bodyMapping": {
+          "passthrough": true
+        }
+      }
+    }
+  ]
+}
