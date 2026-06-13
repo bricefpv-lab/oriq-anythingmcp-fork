@@ -110,6 +110,7 @@ import * as mapbox from './intl/mapbox.json';
 import * as mastodon from './intl/mastodon.json';
 import * as medium from './intl/medium.json';
 import * as messagebird from './intl/messagebird.json';
+import * as microsoft365 from './intl/microsoft-365.json';
 import * as microsoftBookings from './intl/microsoft-bookings.json';
 import * as microsoftTeams from './intl/microsoft-teams.json';
 import * as mintlify from './intl/mintlify.json';
@@ -375,6 +376,7 @@ const RAW_ADAPTERS: AdapterDefinition[] = [
   mastodon as unknown as AdapterDefinition,
   medium as unknown as AdapterDefinition,
   messagebird as unknown as AdapterDefinition,
+  microsoft365 as unknown as AdapterDefinition,
   microsoftBookings as unknown as AdapterDefinition,
   microsoftTeams as unknown as AdapterDefinition,
   mintlify as unknown as AdapterDefinition,
