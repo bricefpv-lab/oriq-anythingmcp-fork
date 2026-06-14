@@ -1,0 +1,160 @@
+{
+  "slug": "google-workspace",
+  "name": "Google Workspace",
+  "description": "Connect your AI agent to Google Workspace: search Gmail messages, list and create Google Calendar events. OAuth 2.0 bearer token injected per-request.",
+  "instructions": "This connector uses the Google APIs (https://www.googleapis.com). All requests require a valid OAuth 2.0 access token passed via the Authorization header.\n\n**Gmail search syntax**: use standard Gmail search operators — from:, to:, subject:, newer_than:Nd, after:YYYY/MM/DD, before:YYYY/MM/DD, has:attachment, is:unread, label:. Operators can be combined.\n\n**Calendar**: events use ISO 8601 datetimes with timezone (e.g. 2026-06-15T14:00:00+02:00).\n\n**Pagination**: Gmail search returns IDs + threadIds only. Use pageToken for subsequent pages.",
+  "region": "intl",
+  "category": "productivity",
+  "icon": "google",
+  "docsUrl": "https://developers.google.com/workspace",
+  "requiredEnvVars": [],
+  "connector": {
+    "name": "Google Workspace",
+    "type": "REST",
+    "baseUrl": "https://www.googleapis.com",
+    "authType": "OAUTH2"
+  },
+  "tools": [
+    {
+      "name": "google_gmail_search",
+      "description": "Recherche des messages dans Gmail (lecture seule CASA Tier 2). Retourne IDs et threadIds des messages correspondants.",
+      "parameters": {
+        "type": "object",
+        "required": ["q"],
+        "properties": {
+          "q": {
+            "type": "string",
+            "description": "Requête Gmail (ex: from:alice@example.com, subject:facture, after:2026/01/01)"
+          },
+          "maxResults": {
+            "type": "integer",
+            "default": 10,
+            "description": "Nombre max de messages (max 500)"
+          },
+          "pageToken": {
+            "type": "string",
+            "description": "Jeton de pagination"
+          },
+          "includeSpamTrash": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "endpointMapping": {
+        "method": "GET",
+        "path": "/gmail/v1/users/me/messages",
+        "queryParams": {
+          "q": "$q",
+          "maxResults": "$maxResults",
+          "pageToken": "$pageToken",
+          "includeSpamTrash": "$includeSpamTrash"
+        }
+      }
+    },
+    {
+      "name": "google_calendar_list_upcoming",
+      "description": "Liste les événements à venir du calendrier Google principal.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "timeMin": {
+            "type": "string",
+            "description": "Borne inférieure ISO 8601 (défaut: maintenant)"
+          },
+          "timeMax": {
+            "type": "string",
+            "description": "Borne supérieure ISO 8601"
+          },
+          "maxResults": {
+            "type": "integer",
+            "default": 10,
+            "description": "Nombre max d'événements"
+          },
+          "q": {
+            "type": "string",
+            "description": "Filtre texte libre"
+          },
+          "singleEvents": {
+            "type": "boolean",
+            "default": true
+          },
+          "orderBy": {
+            "type": "string",
+            "enum": ["startTime", "updated"],
+            "default": "startTime"
+          }
+        }
+      },
+      "endpointMapping": {
+        "method": "GET",
+        "path": "/calendar/v3/calendars/primary/events",
+        "queryParams": {
+          "q": "$q",
+          "orderBy": "$orderBy",
+          "timeMax": "$timeMax",
+          "timeMin": "$timeMin",
+          "maxResults": "$maxResults",
+          "singleEvents": "$singleEvents"
+        }
+      }
+    },
+    {
+      "name": "google_calendar_event_create",
+      "description": "Crée un événement dans le calendrier Google principal. Utiliser des dates ISO 8601 (ex: 2026-06-15T14:00:00+02:00).",
+      "parameters": {
+        "type": "object",
+        "required": ["summary", "start_datetime", "end_datetime"],
+        "properties": {
+          "summary": {
+            "type": "string",
+            "description": "Titre de l'événement"
+          },
+          "start_datetime": {
+            "type": "string",
+            "description": "Date/heure début ISO 8601 avec timezone (ex: 2026-06-15T14:00:00+02:00)"
+          },
+          "end_datetime": {
+            "type": "string",
+            "description": "Date/heure fin ISO 8601"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description de l'événement"
+          },
+          "location": {
+            "type": "string",
+            "description": "Lieu"
+          },
+          "timezone": {
+            "type": "string",
+            "default": "Europe/Paris"
+          },
+          "attendees": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Emails des participants"
+          }
+        }
+      },
+      "endpointMapping": {
+        "method": "POST",
+        "path": "/calendar/v3/calendars/primary/events",
+        "bodyMapping": {
+          "summary": "$summary",
+          "description": "$description",
+          "location": "$location",
+          "start": {
+            "dateTime": "$start_datetime",
+            "timeZone": "$timezone"
+          },
+          "end": {
+            "dateTime": "$end_datetime",
+            "timeZone": "$timezone"
+          },
+          "attendees": "$attendees"
+        }
+      }
+    }
+  ]
+}
