@@ -231,7 +231,7 @@ export class RestEngine {
       oauthTokenOverride?: string;
     },
   ): Promise<void> {
-    if (!config.authConfig) return;
+    if (!config.authConfig && !config.oauthTokenOverride) return;
 
     switch (config.authType) {
       case 'API_KEY': {
