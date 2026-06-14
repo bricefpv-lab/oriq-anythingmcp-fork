@@ -12,10 +12,7 @@
     "name": "Microsoft Graph (365)",
     "type": "REST",
     "baseUrl": "https://graph.microsoft.com",
-    "authType": "BEARER_TOKEN",
-    "authConfig": {
-      "token": "{{MICROSOFT_GRAPH_ACCESS_TOKEN}}"
-    }
+    "authType": "OAUTH2"
   },
   "tools": [
     {
