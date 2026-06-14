@@ -1,0 +1,294 @@
+{
+  "slug": "notion",
+  "name": "Notion",
+  "description": "Connect your AI agent to Notion: search pages and databases, read and write content, manage users and comments. 15 tools covering the full Notion REST API v1.",
+  "instructions": "This connector uses the Notion REST API v1 (https://api.notion.com/v1). All requests require a valid OAuth 2.0 access token passed via the Authorization header. The Notion-Version header (2022-06-28) is set automatically by the connector.\n\n**Authentication**: OAuth 2.0 bearer token (tenant-scoped, injected per-request).\n\n**Pagination**: list responses include `has_more` and `next_cursor`. Pass `next_cursor` as `start_cursor` on the next call.\n\n**Block IDs and Page IDs**: Notion IDs are UUIDs. They can appear with or without hyphens — the API accepts both forms.\n\n**Search**: `notion_search` queries all pages and databases the integration has access to. Use `filter.value='page'` or `filter.value='database'` to narrow results.",
+  "region": "intl",
+  "category": "productivity",
+  "icon": "notion",
+  "docsUrl": "https://developers.notion.com/reference/intro",
+  "requiredEnvVars": [],
+  "connector": {
+    "name": "Notion",
+    "type": "REST",
+    "baseUrl": "https://api.notion.com",
+    "authType": "OAUTH2",
+    "headers": {
+      "Notion-Version": "2022-06-28"
+    }
+  },
+  "tools": [
+    {
+      "name": "notion_search",
+      "description": "Recherche des pages et databases dans le workspace Notion",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string" },
+          "filter": { "type": "object" },
+          "sort": { "type": "object" },
+          "page_size": { "type": "integer", "default": 10 }
+        }
+      },
+      "endpointMapping": {
+        "method": "POST",
+        "path": "/v1/search",
+        "bodyMapping": { "passthrough": true }
+      }
+    },
+    {
+      "name": "notion_read_page",
+      "description": "Lit les propriétés d'une page Notion",
+      "parameters": {
+        "type": "object",
+        "required": ["page_id"],
+        "properties": {
+          "page_id": { "type": "string" }
+        }
+      },
+      "endpointMapping": {
+        "method": "GET",
+        "path": "/v1/pages/{page_id}"
+      }
+    },
+    {
+      "name": "notion_read_database",
+      "description": "Lit le schéma et les métadonnées d'une database Notion",
+      "parameters": {
+        "type": "object",
+        "required": ["database_id"],
+        "properties": {
+          "database_id": { "type": "string" }
+        }
+      },
+      "endpointMapping": {
+        "method": "GET",
+        "path": "/v1/databases/{database_id}"
+      }
+    },
+    {
+      "name": "notion_query_database",
+      "description": "Requête les entrées d'une database Notion avec filtres et tris",
+      "parameters": {
+        "type": "object",
+        "required": ["database_id"],
+        "properties": {
+          "database_id": { "type": "string" },
+          "filter": { "type": "object" },
+          "sorts": { "type": "array" },
+          "start_cursor": { "type": "string" },
+          "page_size": { "type": "integer", "default": 20 }
+        }
+      },
+      "endpointMapping": {
+        "method": "POST",
+        "path": "/v1/databases/{database_id}/query",
+        "bodyMapping": { "passthrough": true }
+      }
+    },
+    {
+      "name": "notion_read_block_children",
+      "description": "Lit les blocs enfants d'une page ou d'un bloc Notion",
+      "parameters": {
+        "type": "object",
+        "required": ["block_id"],
+        "properties": {
+          "block_id": { "type": "string" },
+          "start_cursor": { "type": "string" },
+          "page_size": { "type": "integer", "default": 50 }
+        }
+      },
+      "endpointMapping": {
+        "method": "GET",
+        "path": "/v1/blocks/{block_id}/children",
+        "queryParams": {
+          "start_cursor": "$start_cursor",
+          "page_size": "$page_size"
+        }
+      }
+    },
+    {
+      "name": "notion_list_users",
+      "description": "Liste les membres du workspace Notion",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "start_cursor": { "type": "string" },
+          "page_size": { "type": "integer", "default": 20 }
+        }
+      },
+      "endpointMapping": {
+        "method": "GET",
+        "path": "/v1/users",
+        "queryParams": {
+          "start_cursor": "$start_cursor",
+          "page_size": "$page_size"
+        }
+      }
+    },
+    {
+      "name": "notion_get_comments",
+      "description": "Lit les commentaires d'une page ou d'un bloc Notion",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "block_id": { "type": "string" },
+          "start_cursor": { "type": "string" },
+          "page_size": { "type": "integer", "default": 20 }
+        }
+      },
+      "endpointMapping": {
+        "method": "GET",
+        "path": "/v1/comments",
+        "queryParams": {
+          "block_id": "$block_id",
+          "start_cursor": "$start_cursor",
+          "page_size": "$page_size"
+        }
+      }
+    },
+    {
+      "name": "notion_create_page",
+      "description": "Crée une nouvelle page dans un parent (page ou database Notion)",
+      "parameters": {
+        "type": "object",
+        "required": ["parent", "properties"],
+        "properties": {
+          "parent": { "type": "object" },
+          "properties": { "type": "object" },
+          "children": { "type": "array" },
+          "icon": { "type": "object" },
+          "cover": { "type": "object" }
+        }
+      },
+      "endpointMapping": {
+        "method": "POST",
+        "path": "/v1/pages",
+        "bodyMapping": { "passthrough": true }
+      }
+    },
+    {
+      "name": "notion_create_database",
+      "description": "Crée une nouvelle database Notion dans une page parent",
+      "parameters": {
+        "type": "object",
+        "required": ["parent", "properties"],
+        "properties": {
+          "parent": { "type": "object" },
+          "properties": { "type": "object" },
+          "title": { "type": "array" }
+        }
+      },
+      "endpointMapping": {
+        "method": "POST",
+        "path": "/v1/databases",
+        "bodyMapping": { "passthrough": true }
+      }
+    },
+    {
+      "name": "notion_update_page_properties",
+      "description": "Met à jour les propriétés d'une page Notion existante",
+      "parameters": {
+        "type": "object",
+        "required": ["page_id", "properties"],
+        "properties": {
+          "page_id": { "type": "string" },
+          "properties": { "type": "object" },
+          "archived": { "type": "boolean" }
+        }
+      },
+      "endpointMapping": {
+        "method": "PATCH",
+        "path": "/v1/pages/{page_id}",
+        "bodyMapping": { "passthrough": true }
+      }
+    },
+    {
+      "name": "notion_update_database",
+      "description": "Modifie le titre, la description ou le schéma d'une database Notion",
+      "parameters": {
+        "type": "object",
+        "required": ["database_id"],
+        "properties": {
+          "database_id": { "type": "string" },
+          "title": { "type": "array" },
+          "description": { "type": "array" },
+          "properties": { "type": "object" }
+        }
+      },
+      "endpointMapping": {
+        "method": "PATCH",
+        "path": "/v1/databases/{database_id}",
+        "bodyMapping": { "passthrough": true }
+      }
+    },
+    {
+      "name": "notion_append_blocks",
+      "description": "Ajoute des blocs à la fin d'une page ou d'un bloc Notion",
+      "parameters": {
+        "type": "object",
+        "required": ["block_id", "children"],
+        "properties": {
+          "block_id": { "type": "string" },
+          "children": { "type": "array" },
+          "after": { "type": "string" }
+        }
+      },
+      "endpointMapping": {
+        "method": "PATCH",
+        "path": "/v1/blocks/{block_id}/children",
+        "bodyMapping": { "passthrough": true }
+      }
+    },
+    {
+      "name": "notion_update_block",
+      "description": "Édite le contenu ou l'archivage d'un bloc Notion",
+      "parameters": {
+        "type": "object",
+        "required": ["block_id"],
+        "properties": {
+          "block_id": { "type": "string" },
+          "archived": { "type": "boolean" }
+        }
+      },
+      "endpointMapping": {
+        "method": "PATCH",
+        "path": "/v1/blocks/{block_id}",
+        "bodyMapping": { "passthrough": true }
+      }
+    },
+    {
+      "name": "notion_delete_block",
+      "description": "Archive (soft delete) un bloc Notion",
+      "parameters": {
+        "type": "object",
+        "required": ["block_id"],
+        "properties": {
+          "block_id": { "type": "string" }
+        }
+      },
+      "endpointMapping": {
+        "method": "DELETE",
+        "path": "/v1/blocks/{block_id}",
+        "bodyMapping": { "passthrough": true }
+      }
+    },
+    {
+      "name": "notion_create_comment",
+      "description": "Ajoute un commentaire sur une page ou un bloc Notion",
+      "parameters": {
+        "type": "object",
+        "required": ["parent", "rich_text"],
+        "properties": {
+          "parent": { "type": "object" },
+          "rich_text": { "type": "array" }
+        }
+      },
+      "endpointMapping": {
+        "method": "POST",
+        "path": "/v1/comments",
+        "bodyMapping": { "passthrough": true }
+      }
+    }
+  ]
+}
