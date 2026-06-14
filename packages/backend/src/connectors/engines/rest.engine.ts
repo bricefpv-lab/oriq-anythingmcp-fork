@@ -231,7 +231,15 @@ export class RestEngine {
       oauthTokenOverride?: string;
     },
   ): Promise<void> {
-    if (!config.authConfig && !config.oauthTokenOverride) return;
+    if (!config.authConfig) {
+      if (config.oauthTokenOverride) {
+        axiosConfig.headers = {
+          ...axiosConfig.headers,
+          Authorization: `Bearer ${config.oauthTokenOverride}`,
+        };
+      }
+      return;
+    }
 
     switch (config.authType) {
       case 'API_KEY': {
