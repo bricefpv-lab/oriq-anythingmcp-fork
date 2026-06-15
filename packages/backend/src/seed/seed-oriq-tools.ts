@@ -1,12 +1,21 @@
 /**
- * seed-oriq-tools.ts — Seed idempotent des tools oriq-spécifiques.
+ * seed-oriq-tools.ts — SOURCE DE VÉRITÉ des tools Oriq-spécifiques exposés
+ * par le bridge AMCP.
  *
- * Couvre les tools qui ne peuvent pas être recréés via l'UI AMCP car ils
- * n'ont pas d'équivalent dans le catalogue adapters upstream.
- * Appelé depuis start.sh à chaque boot, APRÈS prisma migrate deploy.
- * Fail-soft : log + continue si le connector est absent ou si Prisma échoue.
+ * Toute modification d'un tool (ajout / édition / suppression de champ) se
+ * fait ICI. C'est ce fichier qui crée les entrées dans mcp_tools au boot.
  *
- * Source de vérité documentaire : connectors/*.manifest.json (oriq-edge).
+ * Les connectors/*.manifest.json dans oriq-edge sont de la DOCUMENTATION de
+ * référence destinée aux humains — ils ne sont JAMAIS lus au runtime.
+ * Si un tool change ici, mettre à jour le manifest oriq-edge correspondant
+ * manuellement pour garder la doc en phase.
+ *
+ * Sémantique :
+ *   - Idempotent : skip si le tool est déjà présent en DB.
+ *   - Fail-soft  : warn + continue si le connector est absent (pas de crash boot).
+ *   - Non destructif : ne supprime aucun tool existant.
+ *
+ * Appelé depuis start.sh à chaque démarrage, après `prisma migrate deploy`.
  */
 
 import { PrismaPg } from '@prisma/adapter-pg';
