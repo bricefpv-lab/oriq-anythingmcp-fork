@@ -17,6 +17,9 @@ echo "==> Running database migrations..."
 cd /app/backend
 npx prisma migrate deploy
 
+echo "==> Seeding oriq tools..."
+node dist/src/seed/seed-oriq-tools.js || echo "[WARN] seed-oriq-tools failed, continuing..."
+
 echo "==> Starting backend (port 4000)..."
 node dist/src/main.js &
 BACKEND_PID=$!
